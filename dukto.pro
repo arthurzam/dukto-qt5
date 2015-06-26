@@ -7,6 +7,10 @@
 QML_IMPORT_PATH =
 
 QT += network
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+TARGET = dukto
+TEMPLATE = app
 
 win32:RC_FILE = dukto.rc
 win32:LIBS += libWs2_32 libole32 libNetapi32
@@ -27,9 +31,7 @@ symbian:TARGET.CAPABILITY += NetworkServices
 
 
 unix {
-	TARGET = dukto
-	target.path = /usr/bin
-	INSTALLS += target
+        target.path = /usr/bin
 	
 	icon.path = /usr/share/pixmaps
 	icon.files = dukto.png

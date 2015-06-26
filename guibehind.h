@@ -107,7 +107,7 @@ public:
 #endif
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *event);
+    bool eventFilter(QObject *, QEvent *event);
 
 signals:
     void currentTransferBuddyChanged();

@@ -25,6 +25,7 @@
 #include <QDragMoveEvent>
 #include <QDragLeaveEvent>
 #include <QDropEvent>
+#include <QMimeData>
 
 DuktoWindow::DuktoWindow(QWidget *parent) :
     QmlApplicationViewer(parent), mGuiBehind(NULL)
@@ -43,7 +44,7 @@ DuktoWindow::DuktoWindow(QWidget *parent) :
     mWin7.init(this->winId());
 }
 
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN
 bool DuktoWindow::winEvent(MSG * message, long * result)
 {
     return mWin7.winEvent(message, result);
@@ -85,7 +86,7 @@ void DuktoWindow::dropEvent(QDropEvent *event)
     mGuiBehind->sendDroppedFiles(&files);
 }
 
-void DuktoWindow::closeEvent(QCloseEvent *event)
+void DuktoWindow::closeEvent(QCloseEvent *)
 {
     mGuiBehind->settings()->saveWindowGeometry(saveGeometry());
     mGuiBehind->close();

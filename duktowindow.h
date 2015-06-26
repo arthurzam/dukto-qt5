@@ -34,14 +34,14 @@ public:
     inline EcWin7* win7() { return &mWin7; }
 
 protected:
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN
     bool winEvent(MSG * message, long * result);
 #endif
     void dragEnterEvent(QDragEnterEvent *event);
     void dragMoveEvent(QDragMoveEvent *event);
     void dragLeaveEvent(QDragLeaveEvent *event);
     void dropEvent(QDropEvent *event);
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *);
 
 signals:
 

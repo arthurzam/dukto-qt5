@@ -600,7 +600,7 @@ void GuiBehind::receiveFileCancelled()
 }
 
 // Event handler to catch the "application activate" event
-bool GuiBehind::eventFilter(QObject *obj, QEvent *event)
+bool GuiBehind::eventFilter(QObject *, QEvent *event)
 {
     // On application activatio, I send a broadcast hello
     if (event->type() == QEvent::ApplicationActivate)

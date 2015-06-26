@@ -23,13 +23,14 @@
 #include <QFile>
 #include <QDir>
 #include <QMessageBox>
+#include <QtGlobal>
 
 #if defined(Q_WS_MAC)
 #include <QTemporaryFile>
 #include <CoreServices/CoreServices.h>
 #endif
 
-#if defined(Q_WS_WIN)
+#if defined(Q_OS_WIN)
 #include <windows.h>
 #include <lmaccess.h>
 
@@ -67,7 +68,7 @@ QString Platform::getSystemUsername()
     static QString username = "";
     if (username != "") return username;
 
-#if defined (Q_WS_WIN)
+#if defined (Q_OS_WIN)
 /*    QString un(getenv("USERNAME"));
     if (un != ""){
         USER_INFO_23 *user_info;
@@ -139,11 +140,11 @@ QString Platform::getHostname()
 // Returns the platform name
 QString Platform::getPlatformName()
 {
-#if defined(Q_WS_WIN)
+#if defined(Q_OS_WIN)
     return "Windows";
 #elif defined(Q_WS_MAC)
     return "Macintosh";
-#elif defined(Q_WS_X11)
+#elif defined(Q_OS_LINUX)
     return "Linux";
 #elif defined(Q_WS_S60)
     return "Symbian";
@@ -155,7 +156,7 @@ QString Platform::getPlatformName()
 // Returns the platform avatar path
 QString Platform::getAvatarPath()
 {
-#if defined(Q_WS_WIN)
+#if defined(Q_OS_WIN)
     QString username = getSystemUsername().replace("\\", "+");
     QString path = QString(getenv("LOCALAPPDATA")) + "\\Temp\\" + username + ".bmp";
     if (!QFile::exists(path))
@@ -169,7 +170,7 @@ QString Platform::getAvatarPath()
     return path;
 #elif defined(Q_WS_MAC)
     return getMacTempAvatarPath();
-#elif defined(Q_WS_X11)
+#elif defined(Q_OS_LINUX)
     return getLinuxAvatarPath();
 #elif defined(Q_WS_S60)
     return "";
@@ -182,11 +183,11 @@ QString Platform::getAvatarPath()
 QString Platform::getDefaultPath()
 {
     // For Windows it's the Desktop folder
-#if defined(Q_WS_WIN)
+#if defined(Q_OS_WIN)
     return QString(getenv("USERPROFILE")) + "\\Desktop";
 #elif defined(Q_WS_MAC)
     return QString(getenv("HOME")) + "/Desktop";
-#elif defined(Q_WS_X11)
+#elif defined(Q_OS_UNIX)
     return QString(getenv("HOME"));
 #elif defined(Q_WS_S60)
     return "E:\\Dukto";
@@ -198,7 +199,7 @@ QString Platform::getDefaultPath()
 
 }
 
-#if defined(Q_WS_X11)
+#if defined(Q_OS_LINUX)
 // Special function for Linux
 QString Platform::getLinuxAvatarPath()
 {
@@ -264,7 +265,7 @@ QString Platform::getMacTempAvatarPath()
 }
 #endif
 
-#if defined(Q_WS_WIN)
+#if defined(Q_OS_WIN)
 
 #include <objbase.h>
 

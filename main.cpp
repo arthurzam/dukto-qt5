@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include "qmlapplicationviewer.h"
 
 #include "guibehind.h"
@@ -36,9 +36,7 @@
 
 int main(int argc, char *argv[])
 {
-#if defined(Q_WS_X11)
-    QApplication::setGraphicsSystem("raster");
-#elif defined (Q_WS_WIN)
+#if defined (Q_OS_WIN)
     qputenv("QML_ENABLE_TEXT_IMAGE_CACHE", "true");
 #endif
 
