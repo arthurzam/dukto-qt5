@@ -9,3 +9,4 @@ Exec=/usr/bin/dukto
 Icon=dukto
 X-HildonDesk-ShowInToolbar=true
 X-Osso-Type=application/x-executable
+Categories=Network;Application;

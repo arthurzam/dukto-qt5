@@ -25,7 +25,7 @@
 #include <QMessageBox>
 #include <QtGlobal>
 
-#if defined(Q_WS_MAC)
+#if defined(Q_OS_MAC)
 #include <QTemporaryFile>
 #include <CoreServices/CoreServices.h>
 #endif
@@ -142,7 +142,7 @@ QString Platform::getPlatformName()
 {
 #if defined(Q_OS_WIN)
     return "Windows";
-#elif defined(Q_WS_MAC)
+#elif defined(Q_OS_MAC)
     return "Macintosh";
 #elif defined(Q_OS_LINUX)
     return "Linux";
@@ -168,7 +168,7 @@ QString Platform::getAvatarPath()
     if (!QFile::exists(path))
         path = QString(getenv("ALLUSERSPROFILE")) + "\\" + QDir(getenv("APPDATA")).dirName() + "\\Microsoft\\User Account Pictures\\Guest.bmp";
     return path;
-#elif defined(Q_WS_MAC)
+#elif defined(Q_OS_MAC)
     return getMacTempAvatarPath();
 #elif defined(Q_OS_LINUX)
     return getLinuxAvatarPath();
@@ -185,7 +185,7 @@ QString Platform::getDefaultPath()
     // For Windows it's the Desktop folder
 #if defined(Q_OS_WIN)
     return QString(getenv("USERPROFILE")) + "\\Desktop";
-#elif defined(Q_WS_MAC)
+#elif defined(Q_OS_MAC)
     return QString(getenv("HOME")) + "/Desktop";
 #elif defined(Q_OS_UNIX)
     return QString(getenv("HOME"));
@@ -235,7 +235,7 @@ QString Platform::getLinuxAvatarPath()
 }
 #endif
 
-#if defined(Q_WS_MAC)
+#if defined(Q_OS_MAC)
 static QTemporaryFile macAvatar;
 
 // Special function for OSX

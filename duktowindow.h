@@ -20,7 +20,9 @@
 #define DUKTOWINDOW_H
 
 #include "qmlapplicationviewer/qmlapplicationviewer.h"
+#ifdef Q_OS_WIN
 #include "ecwin7.h"
+#endif
 
 class GuiBehind;
 
@@ -31,7 +33,9 @@ class DuktoWindow : public QmlApplicationViewer
 public:
     explicit DuktoWindow(QWidget *parent = 0);
     void setGuiBehindReference(GuiBehind* ref);
+#ifdef Q_OS_WIN
     inline EcWin7* win7() { return &mWin7; }
+#endif
 
 protected:
 #ifdef Q_OS_WIN
@@ -49,7 +53,10 @@ public slots:
 
 private:
     GuiBehind *mGuiBehind;
+
+#ifdef Q_OS_WIN
     EcWin7 mWin7;
+#endif
 };
 
 #endif // DUKTOWINDOW_H

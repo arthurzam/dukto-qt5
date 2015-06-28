@@ -103,7 +103,6 @@ DECLARE_INTERFACE_(ITaskbarList3,IUnknown)
 typedef ITaskbarList3 *LPITaskbarList3;
 
 // Windows only data d#endifefinitions - END
-#endif
 
 // ********************************************************************
 // EcWin7 class - Windows 7 taskbar handling for Qt and MinGW
@@ -111,34 +110,30 @@ typedef ITaskbarList3 *LPITaskbarList3;
 class EcWin7
 {
 public:
-
-	// Initialization methods
-    EcWin7();
-    void init(WId wid);
-#ifdef Q_OS_WIN
-    bool winEvent(MSG * message, long * result);
-#endif
-	// Overlay icon handling
-	void setOverlayIcon(QString iconName, QString description);
-	
-	// Progress indicator handling
-	enum ToolBarProgressState {
+    // Progress indicator handling
+    enum ToolBarProgressState {
         NoProgress = 0,
         Indeterminate = 1,
         Normal = 2,
         Error = 4,
         Paused = 8
     };
+
+    // Initialization methods
+    EcWin7();
+    void init(WId wid);
+    bool winEvent(MSG * message, long * result);
+    // Overlay icon handling
+    void setOverlayIcon(QString iconName, QString description);
     void setProgressValue(int value, int max);
     void setProgressState(ToolBarProgressState state);
 
 private:
     WId mWindowId;
-#ifdef Q_OS_WIN
     UINT mTaskbarMessageId;
     ITaskbarList3 *mTaskbar;
     HICON mOverlayIcon;
-#endif
 };
+#endif
 
 #endif // ECWIN7_H

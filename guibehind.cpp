@@ -212,8 +212,10 @@ void GuiBehind::receiveFileStart(QString senderIp)
 
     // Update user interface
     setCurrentTransferSending(false);
+#ifdef Q_OS_WIN
     mView->win7()->setProgressValue(0, 100);
     mView->win7()->setProgressState(EcWin7::Normal);
+#endif
 
     emit transferStart();
 }
@@ -231,7 +233,9 @@ void GuiBehind::transferStatusUpdate(qint64 total, qint64 partial)
     double percent = partial * 1.0 / total * 100;
     setCurrentTransferProgress(percent);
 
+#ifdef Q_OS_WIN
     mView->win7()->setProgressValue(percent, 100);
+#endif
 }
 
 void GuiBehind::receiveFileComplete(QStringList *files, qint64 totalSize) {
@@ -244,7 +248,9 @@ void GuiBehind::receiveFileComplete(QStringList *files, qint64 totalSize) {
         mRecentList.addRecent("Files and folders", d.absolutePath(), "misc", mCurrentTransferBuddy, totalSize);
 
     // Update GUI
+#ifdef Q_OS_WIN
     mView->win7()->setProgressState(EcWin7::NoProgress);
+#endif
     QApplication::alert(mView, 5000);
     emit receiveCompleted();
 }
@@ -255,7 +261,9 @@ void GuiBehind::receiveTextComplete(QString *text, qint64 totalSize)
     mRecentList.addRecent("Text snippet", *text, "text", mCurrentTransferBuddy, totalSize);
 
     // Update GUI
+#ifdef Q_OS_WIN
     mView->win7()->setProgressState(EcWin7::NoProgress);
+#endif
     QApplication::alert(mView, 5000);
     emit receiveCompleted();
 }
@@ -508,8 +516,10 @@ bool GuiBehind::prepareStartTransfer(QString *ip, qint16 *port)
     setCurrentTransferSending(true);
     setCurrentTransferStats("Connecting...");
     setCurrentTransferProgress(0);
+#ifdef Q_OS_WIN
     mView->win7()->setProgressState(EcWin7::Normal);
     mView->win7()->setProgressValue(0, 100);
+#endif
 
     emit transferStart();
     return true;
@@ -529,7 +539,9 @@ void GuiBehind::sendFileComplete(QStringList *files)
 #endif
     setMessagePageBackState("send");
 
+#ifdef Q_OS_WIN
     mView->win7()->setProgressState(EcWin7::NoProgress);
+#endif
 
     // Check for temporary file to delete
     if (mScreenTempPath != "") {
@@ -576,7 +588,9 @@ void GuiBehind::sendFileError(int code)
     setMessagePageTitle("Error");
     setMessagePageText("Sorry, an error has occurred while sending your data...\n\nError code: " + QString::number(code));
     setMessagePageBackState("send");
+#ifdef Q_OS_WIN
     mView->win7()->setProgressState(EcWin7::Error);
+#endif
 
     // Check for temporary file to delete
     if (mScreenTempPath != "") {
@@ -595,7 +609,9 @@ void GuiBehind::receiveFileCancelled()
     setMessagePageTitle("Error");
     setMessagePageText("An error has occurred during the transfer... The data you received could be incomplete or broken.");
     setMessagePageBackState("");
+#ifdef Q_OS_WIN
     mView->win7()->setProgressState(EcWin7::Error);
+#endif
     emit gotoMessagePage();
 }
 
@@ -625,7 +641,9 @@ void GuiBehind::close()
 // Reset taskbar progress status
 void GuiBehind::resetProgressStatus()
 {
+#ifdef Q_OS_WIN
     mView->win7()->setProgressState(EcWin7::NoProgress);
+#endif
 }
 
 // Periodic hello sending

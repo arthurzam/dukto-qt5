@@ -41,7 +41,9 @@ DuktoWindow::DuktoWindow(QWidget *parent) :
     setOrientation(QmlApplicationViewer::ScreenOrientationLockPortrait);
 
     // Taskbar integration with Win7
+#ifdef Q_OS_WIN
     mWin7.init(this->winId());
+#endif
 }
 
 #ifdef Q_OS_WIN

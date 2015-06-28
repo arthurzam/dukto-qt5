@@ -36,7 +36,7 @@ public:
     Platform() {}
 #if defined(Q_OS_LINUX)
     static QString getLinuxAvatarPath();
-#elif defined(Q_WS_MAC)
+#elif defined(Q_OS_MAC)
     static QString getMacTempAvatarPath();
 #elif defined(Q_OS_WIN)
     static QString getWinTempAvatarPath();
