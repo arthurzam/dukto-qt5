@@ -61,7 +61,8 @@ SOURCES += main.cpp \
     duktowindow.cpp \
     ecwin7.cpp \
     theme.cpp \
-    updateschecker.cpp
+    updateschecker.cpp \
+    systemtray.cpp
 
 # Please do not modify the following two lines. Required for deployment.
 include(qmlapplicationviewer/qmlapplicationviewer.pri)
@@ -81,7 +82,8 @@ HEADERS += \
     duktowindow.h \
     ecwin7.h \
     theme.h \
-    updateschecker.h
+    updateschecker.h \
+    systemtray.h
 
 RESOURCES += \
     qml.qrc

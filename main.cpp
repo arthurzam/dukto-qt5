@@ -1,5 +1,6 @@
 /* DUKTO - A simple, fast and multi-platform file transfer tool for LAN users
  * Copyright (C) 2011 Emanuele Colombo
+ * Copyright (C) 2015 Arthur Zamarin
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +19,7 @@
 
 #include <QApplication>
 #include "qmlapplicationviewer.h"
+#include "systemtray.h"
 
 #include "guibehind.h"
 #include "duktowindow.h"
@@ -54,6 +56,8 @@ int main(int argc, char *argv[])
     DuktoWindow viewer;
 #ifndef SYMBIAN
     app.setActivationWindow(&viewer, true);
+    SystemTray tray(viewer);
+    tray.show();
 #endif
     GuiBehind gb(&viewer);
 
