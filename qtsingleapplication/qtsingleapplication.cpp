@@ -44,6 +44,7 @@
 ** 
 ****************************************************************************/
 
+#ifdef SINGLE_APP
 
 #include "qtsingleapplication.h"
 #include "qtlocalpeer.h"
@@ -296,3 +297,4 @@ void QtSingleApplication::activateWindow()
 
     \obsolete
 */
+#endif

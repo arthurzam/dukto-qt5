@@ -38,8 +38,8 @@ RecentListItemModel::RecentListItemModel() :
 #endif
 }
 
-Q_CONSTEXPR double BYTES_TO_KB = 1.0 / 1024;
-Q_CONSTEXPR double BYTES_TO_MB = 1.0 / 1048576;
+const double BYTES_TO_KB = 1.0 / 1024;
+const double BYTES_TO_MB = 1.0 / 1048576;
 
 void RecentListItemModel::addRecent(QString name, QString value, QString type, QString sender, qint64 size)
 {

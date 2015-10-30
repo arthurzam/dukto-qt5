@@ -43,8 +43,7 @@
 ** contact the sales department at qt-sales@nokia.com.
 ** 
 ****************************************************************************/
-
-#ifndef QT_SINGALAPPLICATION_H
+#if defined(SINGLE_APP) && !defined(QT_SINGALAPPLICATION_H)
 #define QT_SINGALAPPLICATION_H
 
 #include <QApplication>

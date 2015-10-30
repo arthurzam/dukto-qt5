@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef UPDATESCHECKER_H
+#if defined(UPDATER) && !defined(UPDATESCHECKER_H)
 #define UPDATESCHECKER_H
 
 #include <QThread>
@@ -42,4 +42,4 @@ private:
     QNetworkAccessManager *mNetworkAccessManager;
 };
 
-#endif // UPDATESCHECKER_H
+#endif

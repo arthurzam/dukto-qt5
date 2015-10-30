@@ -31,7 +31,9 @@
 #include "duktoprotocol.h"
 #include "theme.h"
 
+#ifdef UPDATER
 class UpdatesChecker;
+#endif
 class MiniWebServer;
 class Settings;
 class DuktoWindow;
@@ -190,7 +192,9 @@ private:
     IpAddressItemModel mIpAddresses;
     DuktoProtocol mDuktoProtocol;
     Theme mTheme;
+#ifdef UPDATER
     UpdatesChecker *mUpdatesChecker;
+#endif
 
     int mCurrentTransferProgress;
     QString mCurrentTransferBuddy;

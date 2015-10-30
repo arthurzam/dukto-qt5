@@ -15,7 +15,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
- 
+
+#ifdef UPDATER
 #include "updateschecker.h"
 
 #include "platform.h"
@@ -68,3 +69,4 @@ void UpdatesChecker::updatedDataReady(QNetworkReply *reply)
     if (QString(reply->readAll()).isEmpty()) return;
     emit updatesAvailable();
 }
+#endif

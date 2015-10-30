@@ -57,8 +57,10 @@
 
 GuiBehind::GuiBehind(DuktoWindow* view) :
     QObject(NULL), mView(view), mShowBackTimer(NULL), mPeriodicHelloTimer(NULL),
-    mClipboard(NULL), mMiniWebServer(NULL), mSettings(NULL), mDestBuddy(NULL),
-    mUpdatesChecker(NULL)
+    mClipboard(NULL), mMiniWebServer(NULL), mSettings(NULL), mDestBuddy(NULL)
+#ifdef UPDATER
+    ,mUpdatesChecker(NULL)
+#endif
 {    
     // Status variables
     mView->setGuiBehindReference(this);
@@ -138,10 +140,12 @@ GuiBehind::GuiBehind(DuktoWindow* view) :
     qsrand(QDateTime::currentDateTime().toTime_t());;
     mShowBackTimer->start(10000);
 
+#ifdef UPDATER
     // Enqueue check for updates
     mUpdatesChecker = new UpdatesChecker();
     connect(mUpdatesChecker, SIGNAL(updatesAvailable()), this, SLOT(showUpdatesMessage()));
     QTimer::singleShot(2000, mUpdatesChecker, SLOT(start()));
+#endif
 
     // TEMP
     // Peer p(QHostAddress("172.16.3.3"), "Pippo at Pluto (Macintosh)");
@@ -153,7 +157,9 @@ GuiBehind::~GuiBehind()
 {
     mDuktoProtocol.sayGoodbye();
 
+#ifdef UPDATER
     if (mUpdatesChecker) mUpdatesChecker->deleteLater();
+#endif
     if (mMiniWebServer) mMiniWebServer->deleteLater();
     if (mShowBackTimer) mShowBackTimer->deleteLater();
     if (mPeriodicHelloTimer) mPeriodicHelloTimer->deleteLater();

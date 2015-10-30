@@ -32,7 +32,7 @@
 #define SYMBIAN
 #endif
 
-#ifndef SYMBIAN
+#if !defined(SYMBIAN) && defined(SINGLE_APP)
 #include "qtsingleapplication.h"
 #endif
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     qputenv("QML_ENABLE_TEXT_IMAGE_CACHE", "true");
 #endif
 
-#if defined(SYMBIAN)
+#if defined(SYMBIAN) || !defined(SINGLE_APP)
     QApplication app(argc, argv);
 #else
     // Check for single running instance    
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 #endif
 
     DuktoWindow viewer;
-#ifndef SYMBIAN
+#if !defined(SYMBIAN) && defined(SINGLE_APP)
     app.setActivationWindow(&viewer, true);
     SystemTray tray(viewer);
     tray.show();
