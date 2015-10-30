@@ -31,7 +31,7 @@ MiniWebServer::MiniWebServer(int port)
 {
     // Load and convert avatar image
     QString path = Platform::getAvatarPath();
-    if (path != "")
+    if (!path.isEmpty())
     {
         QImage img(path);
         QImage scaled = img.scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);

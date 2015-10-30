@@ -34,7 +34,7 @@ QString Settings::currentPath()
     QString path = mSettings.value("DestPath", "").toString();
 
     // Check if exists
-    if ((path != "") && (QDir(path).exists()))
+    if (!path.isEmpty() && (QDir(path).exists()))
             return path;
 
     // Else return the default path for this platform

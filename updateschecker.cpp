@@ -40,7 +40,7 @@ UpdatesChecker::~UpdatesChecker()
 void UpdatesChecker::run()
 {
     // Get platform data
-    QString osver = "";
+    QString osver;
     QString os = Platform::getPlatformName().toLower();
 #if defined(Q_OS_WIN)
     osver = QString::number(QSysInfo::WindowsVersion);
@@ -65,6 +65,6 @@ void UpdatesChecker::run()
 void UpdatesChecker::updatedDataReady(QNetworkReply *reply)
 {
     if (reply->error() != QNetworkReply::NoError) return;
-    if (QString(reply->readAll()) == "") return;
+    if (QString(reply->readAll()).isEmpty()) return;
     emit updatesAvailable();
 }

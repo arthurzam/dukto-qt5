@@ -197,7 +197,7 @@ void GuiBehind::showRandomBack()
 
 void GuiBehind::clipboardChanged()
 {
-    mClipboardTextAvailable = (mClipboard->text() != "");
+    mClipboardTextAvailable = !(mClipboard->text().isEmpty());
     emit clipboardTextAvailableChanged();
 }
 
@@ -205,7 +205,7 @@ void GuiBehind::receiveFileStart(QString senderIp)
 {
     // Look for the sender in the buddy list
     QString sender = mBuddiesList.buddyNameByIp(senderIp);
-    if (sender == "")
+    if (sender.isEmpty())
         setCurrentTransferBuddy("remote sender");
     else
         setCurrentTransferBuddy(sender);
@@ -291,7 +291,7 @@ void GuiBehind::changeDestinationFolder()
     // Show system dialog for folder selection
     QString dirname = QFileDialog::getExistingDirectory(mView, "Change folder", ".",
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    if (dirname == "") return;
+    if (dirname.isEmpty()) return;
 
 #ifdef SYMBIAN
     // Disable saving on C:
@@ -343,11 +343,11 @@ void GuiBehind::showSendPage(QString ip)
 
 void GuiBehind::sendDroppedFiles(QStringList *files)
 {
-    if (files->count() == 0) return;
+    if(files->isEmpty()) return;
 
     // Check if there's no selected buddy
     // (but there must be only one buddy in the buddy list)
-    if (overlayState() == "")
+    if (overlayState().isEmpty())
     {
         if (mBuddiesList.rowCount() != 3) return;
         showSendPage(mBuddiesList.fistBuddyIp());
@@ -363,11 +363,10 @@ void GuiBehind::sendSomeFiles()
 {
     // Show file selection dialog
     QStringList files = QFileDialog::getOpenFileNames(mView, "Send some files");
-    if (files.count() == 0) return;
+    if (files.isEmpty()) return;
 
     // Send files
-    QStringList toSend = files;
-    startTransfer(toSend);
+    startTransfer(files);
 }
 
 void GuiBehind::sendFolder()
@@ -375,7 +374,7 @@ void GuiBehind::sendFolder()
     // Show folder selection dialog
     QString dirname = QFileDialog::getExistingDirectory(mView, "Change folder", ".",
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    if (dirname == "") return;
+    if (dirname.isEmpty()) return;
 
     // Send files
     QStringList toSend;
@@ -388,9 +387,9 @@ void GuiBehind::sendClipboardText()
     // Get text to send
     QString text = mClipboard->text();
 #ifndef Q_WS_S60
-    if (text == "") return;
+    if (text.isEmpty()) return;
 #else
-    if (text == "") {
+    if (text.isEmpty()) {
         setMessagePageTitle("Send");
         setMessagePageText("No text appears to be in the clipboard right now!");
         setMessagePageBackState("send");
@@ -407,7 +406,7 @@ void GuiBehind::sendText()
 {
     // Get text to send
     QString text = textSnippet();
-    if (text == "") return;
+    if (text.isEmpty()) return;
 
     // Send text
     startTransfer(text);
@@ -544,11 +543,11 @@ void GuiBehind::sendFileComplete(QStringList *files)
 #endif
 
     // Check for temporary file to delete
-    if (mScreenTempPath != "") {
+    if (!mScreenTempPath.isEmpty()) {
 
         QFile file(mScreenTempPath);
         file.remove();
-        mScreenTempPath = "";
+        mScreenTempPath.clear();
     }
 
     emit gotoMessagePage();
@@ -565,14 +564,15 @@ void GuiBehind::remoteDestinationAddressHandler()
 // drag and drop for files to send
 bool GuiBehind::canAcceptDrop()
 {
+    QString state = overlayState();
     // There must be the send page shown and,
     // if it's a remote destination, it must have an IP
-    if (overlayState() == "send")
-        return !((mDestBuddy->ip() == "IP") && (remoteDestinationAddress() == ""));
+    if (state == "send")
+        return !((mDestBuddy->ip() == "IP") && (remoteDestinationAddress().isEmpty()));
 
     // Or there could be a "send complete" or "send error" message relative to a
     // determinate buddy
-    else if ((overlayState() == "message") && (messagePageBackState() == "send"))
+    else if ((state == "message") && (messagePageBackState() == "send"))
         return true;
 
     // Or there could be just one buddy in the list
@@ -593,11 +593,11 @@ void GuiBehind::sendFileError(int code)
 #endif
 
     // Check for temporary file to delete
-    if (mScreenTempPath != "") {
+    if (!mScreenTempPath.isEmpty()) {
 
         QFile file(mScreenTempPath);
         file.remove();
-        mScreenTempPath = "";
+        mScreenTempPath.clear();
     }
 
     emit gotoMessagePage();

@@ -65,52 +65,20 @@ QString Platform::getSystemUsername()
 #else
 
     // Save in a static variable so that It's always ready
-    static QString username = "";
-    if (username != "") return username;
-
-#if defined (Q_OS_WIN)
-/*    QString un(getenv("USERNAME"));
-    if (un != ""){
-        USER_INFO_23 *user_info;
-        wchar_t buff[1024];
-        int len = un.toWCharArray(buff);
-        buff[len] = '\0';
-        NET_API_STATUS ret = NetUserGetInfo(NULL, buff, 23, (BYTE**)&user_info);
-        if (ret == ERROR_INVALID_LEVEL) {
-            QMessageBox::information(NULL, "1", "NOT SUPPORTED", QMessageBox::Ok);
-        }
-        else if (ret == ERROR_SUCCESS) {
-*/            /*QMessageBox::information(NULL, "1", "SUCCESSO", QMessageBox::Ok);
-            QString dato = QString::fromWCharArray(user_info->usri24_internet_provider_name);
-            QMessageBox::information(NULL, "1", "A" + dato, QMessageBox::Ok);
-            dato = QString::fromWCharArray(user_info->usri24_internet_principal_name);
-            QMessageBox::information(NULL, "1", "B" + dato, QMessageBox::Ok);*/
-/*            QString dato = QString::fromWCharArray(user_info->usri23_full_name);
-            QMessageBox::information(NULL, "1", "A" + dato, QMessageBox::Ok);
-            dato = QString::fromWCharArray(user_info->usri23_name);
-            QMessageBox::information(NULL, "1", "B" + dato, QMessageBox::Ok);
-        }
-        else {
-            QMessageBox::information(NULL, "1", "ERRORE", QMessageBox::Ok);
-        }
-*/        /*else {
-            QString fullname = QString::fromWCharArray(user_info->usri24_internet_principal_name);
-            QMessageBox::information(NULL, "1", fullname, QMessageBox::Ok);
-        }*/
-        /*fullname = QString::fromWCharArray(user_info->usri23_full_name);
-        QMessageBox::information(NULL, "1", fullname, QMessageBox::Ok);*/
-//    }
-
-#endif
+    static QString username;
+    if (!username.isEmpty()) return username;
 
     // Looking for the username
     QString uname(getenv("USERNAME"));
-    if (uname == "") uname = getenv("USER");
-    if (uname == "") uname = "Unknown";
-    uname = uname.left(1).toUpper() + uname.mid(1);
-    username = uname;
+    if (uname.isEmpty())
+    {
+        uname = getenv("USER");
+        if (uname.isEmpty())
+            uname = "Unknown";
+    }
+    username = uname.left(1).toUpper() + uname.mid(1);
 
-    return uname;
+    return username;
 #endif
 }
 
@@ -118,8 +86,8 @@ QString Platform::getSystemUsername()
 QString Platform::getHostname()
 {
     // Save in a static variable so that It's always ready
-    static QString hostname = "";
-    if (hostname != "") return hostname;
+    static QString hostname;
+    if (!hostname.isEmpty()) return hostname;
 
 #if defined(Q_WS_S60)
 

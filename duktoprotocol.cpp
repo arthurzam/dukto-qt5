@@ -33,6 +33,14 @@
 #define DEFAULT_UDP_PORT 4644
 #define DEFAULT_TCP_PORT 4644
 
+enum MSG_TYPE {
+    MSG_HELLO_BROADCAST = 0x01,
+    MSG_HELLO_UNICAST = 0x02,
+    MSG_GOODBYE = 0x03,
+    MSG_HELLO_PORT_BROADCAST = 0x04,
+    MSG_HELLO_PORT_UNICAST = 0x05
+};
+
 DuktoProtocol::DuktoProtocol()
     : mSocket(NULL), mTcpServer(NULL), mCurrentSocket(NULL),
         mCurrentFile(NULL), mFilesToSend(NULL)
@@ -72,8 +80,8 @@ void DuktoProtocol::setPorts(qint16 udp, qint16 tcp)
 
 QString DuktoProtocol::getSystemSignature()
 {
-    static QString signature = "";
-    if (signature != "") return signature;
+    static QString signature;
+    if (!signature.isEmpty()) return signature;
 
     signature = Platform::getSystemUsername()
               + " at " + Platform::getHostname()
@@ -89,23 +97,23 @@ void DuktoProtocol::sayHello(QHostAddress dest)
 void DuktoProtocol::sayHello(QHostAddress dest, qint16 port)
 {
     // Preparazione pacchetto
-    QByteArray *packet = new QByteArray();
+    QByteArray packet;
     if ((port == DEFAULT_UDP_PORT) && (mLocalUdpPort == DEFAULT_UDP_PORT))
     {
         if (dest == QHostAddress::Broadcast)
-            packet->append(0x01);           // 0x01 -> HELLO MESSAGE (broadcast)
+            packet.append(MSG_HELLO_BROADCAST);
         else
-            packet->append(0x02);           // 0x02 -> HELLO MESSAGE (unicast)
+            packet.append(MSG_HELLO_UNICAST);
     }
     else
     {
         if (dest == QHostAddress::Broadcast)
-            packet->append(0x04);           // 0x04 -> HELLO MESSAGE (broadcast) with PORT
+            packet.append(MSG_HELLO_PORT_BROADCAST);
         else
-            packet->append(0x05);           // 0x05 -> HELLO MESSAGE (unicast) with PORT
-        packet->append((char*)&mLocalUdpPort, sizeof(qint16));
+            packet.append(MSG_HELLO_PORT_BROADCAST);
+        packet.append((char*)&mLocalUdpPort, sizeof(qint16));
     }
-    packet->append(getSystemSignature());
+    packet.append(getSystemSignature());
 
     // Invio pacchetto
     if (dest == QHostAddress::Broadcast) {
@@ -113,17 +121,15 @@ void DuktoProtocol::sayHello(QHostAddress dest, qint16 port)
         if (port != DEFAULT_UDP_PORT) sendToAllBroadcast(packet, DEFAULT_UDP_PORT);
     }
     else
-        mSocket->writeDatagram(packet->data(), packet->length(), dest, port);
-
-    delete packet;
+        mSocket->writeDatagram(packet.data(), packet.length(), dest, port);
 }
 
 void DuktoProtocol::sayGoodbye()
 {
     // Create packet
-    QByteArray *packet = new QByteArray();
-    packet->append(0x03);               // 0x03 -> GOODBYE MESSAGE
-    packet->append("Bye Bye");
+    QByteArray packet;
+    packet.append(MSG_GOODBYE);
+    packet.append("Bye Bye");
 
     // Look for all the discovered ports
     QList<qint16> ports;
@@ -136,17 +142,13 @@ void DuktoProtocol::sayGoodbye()
     // Send broadcast message to all discovered ports
     foreach (const qint16 &port, ports)
         sendToAllBroadcast(packet, port);
-
-    // Free memory
-    delete packet;
 }
 
 void DuktoProtocol::newUdpData()
 {
     while (mSocket->hasPendingDatagrams()) {
         QByteArray datagram;
-        const int maxLength = 65536;  // Theoretical max length in IPv4
-        datagram.resize(maxLength);
+        datagram.resize(65536);  // Theoretical max length in IPv4
         // datagram.resize(mSocket->pendingDatagramSize());
         QHostAddress sender;
         quint16 senderPort;
@@ -162,29 +164,29 @@ void DuktoProtocol::handleMessage(QByteArray &data, QHostAddress &sender)
 
     switch(msgtype)
     {
-        case 0x01:  // HELLO (broadcast)
-        case 0x02:  // HELLO (unicast)
+        case MSG_HELLO_BROADCAST:
+        case MSG_HELLO_UNICAST:
             data.remove(0, 1);
             if (data != getSystemSignature()) {
                 mPeers[sender.toString()] = Peer(sender, QString::fromUtf8(data), DEFAULT_UDP_PORT);
-                if (msgtype == 0x01) sayHello(sender, DEFAULT_UDP_PORT);
+                if (msgtype == MSG_HELLO_BROADCAST) sayHello(sender, DEFAULT_UDP_PORT);
                 emit peerListAdded(mPeers[sender.toString()]);
             }
             break;
 
-        case 0x03:  // GOODBYE
+        case MSG_GOODBYE:
             emit peerListRemoved(mPeers[sender.toString()]);
             mPeers.remove(sender.toString());
             break;
 
-        case 0x04:  // HELLO (broadcast) with PORT
-        case 0x05:  // HELLO (unicast) with PORT
+        case MSG_HELLO_PORT_BROADCAST:
+        case MSG_HELLO_PORT_UNICAST:
             data.remove(0, 1);
             qint16 port = *((qint16*) data.constData());
             data.remove(0, 2);
             if (data != getSystemSignature()) {
                 mPeers[sender.toString()] = Peer(sender, QString::fromUtf8(data), port);
-                if (msgtype == 0x04) sayHello(sender, port);
+                if (msgtype == MSG_HELLO_PORT_BROADCAST) sayHello(sender, port);
                 emit peerListAdded(mPeers[sender.toString()]);
             }
             break;
@@ -234,8 +236,8 @@ void DuktoProtocol::newIncomingConnection()
     mTotalReceivedData = 0;
     mElementSize = -1;
     mReceivedFiles = new QStringList();
-    mRootFolderName = "";
-    mRootFolderRenamed = "";
+    mRootFolderName.clear();
+    mRootFolderRenamed.clear();
     mReceivingText = false;
     mRecvStatus = FILENAME;
 
@@ -820,7 +822,7 @@ qint64 DuktoProtocol::computeTotalSize(QStringList *e)
 }
 
 // Invia un pacchetto a tutti gli indirizzi broadcast del PC
-void DuktoProtocol::sendToAllBroadcast(QByteArray *packet, qint16 port)
+void DuktoProtocol::sendToAllBroadcast(const QByteArray& packet, qint16 port)
 {
     // Elenco interfacce disponibili
     QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
@@ -833,9 +835,9 @@ void DuktoProtocol::sendToAllBroadcast(QByteArray *packet, qint16 port)
 
         // Invio pacchetto per ogni IP di broadcast
         for (int j = 0; j < addrs.size(); j++)
-            if ((addrs[j].ip().protocol() == QAbstractSocket::IPv4Protocol) && (addrs[j].broadcast().toString() != ""))
+            if ((addrs[j].ip().protocol() == QAbstractSocket::IPv4Protocol) && !addrs[j].broadcast().toString().isEmpty())
             {
-                mSocket->writeDatagram(packet->data(), packet->length(), addrs[j].broadcast(), port);
+                mSocket->writeDatagram(packet.data(), packet.length(), addrs[j].broadcast(), port);
                 mSocket->flush();
             }
     }

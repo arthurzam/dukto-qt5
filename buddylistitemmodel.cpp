@@ -91,30 +91,31 @@ void BuddyListItemModel::addBuddy(QString ip, qint16 port, QString username, QSt
     it->setData(platform, BuddyListItemModel::Platform);
     it->setData(avatarPath, BuddyListItemModel::Avatar);
 
+    QString platform_lower = platform.toLower();
     // Update generic avatar
-    if ((platform.toLower() == "symbian") || (platform.toLower() == "android") || (platform.toLower() == "ios") || (platform.toLower() == "blackberry") || (platform.toLower() == "windowsphone"))
+    if ((platform_lower == "symbian") || (platform_lower == "android") || (platform_lower == "ios") || (platform_lower == "blackberry") || (platform_lower == "windowsphone"))
         it->setData("SmartphoneLogo.png", BuddyListItemModel::GenericAvatar);
-    else if (platform.toLower() == "ip")
+    else if (platform_lower == "ip")
         it->setData("IpLogo.png", BuddyListItemModel::GenericAvatar);
     else
         it->setData("PcLogo.png", BuddyListItemModel::GenericAvatar);
 
     // Update logo
-    if (platform.toLower() == "windows")
+    if (platform_lower == "windows")
         it->setData("WindowsLogo.png", BuddyListItemModel::OsLogo);
-    else if (platform.toLower() == "macintosh")
+    else if (platform_lower == "macintosh")
         it->setData("AppleLogo.png", BuddyListItemModel::OsLogo);
-    else if (platform.toLower() == "linux")
+    else if (platform_lower == "linux")
         it->setData("LinuxLogo.png", BuddyListItemModel::OsLogo);
-    else if (platform.toLower() == "symbian")
+    else if (platform_lower == "symbian")
         it->setData("SymbianLogo.png", BuddyListItemModel::OsLogo);
-    else if (platform.toLower() == "ios")
+    else if (platform_lower == "ios")
         it->setData("IosLogo.png", BuddyListItemModel::OsLogo);
-    else if (platform.toLower() == "windowsphone")
+    else if (platform_lower == "windowsphone")
         it->setData("WindowsPhoneLogo.png", BuddyListItemModel::OsLogo);
-    else if (platform.toLower() == "blackberry")
+    else if (platform_lower == "blackberry")
         it->setData("BlackberryLogo.png", BuddyListItemModel::OsLogo);
-    else if (platform.toLower() == "android")
+    else if (platform_lower == "android")
         it->setData("AndroidLogo.png", BuddyListItemModel::OsLogo);
     else
         it->setData("UnknownLogo.png", BuddyListItemModel::OsLogo);
@@ -122,7 +123,7 @@ void BuddyListItemModel::addBuddy(QString ip, qint16 port, QString username, QSt
     // Add elemento to the list
     if (add) {
         appendRow(it);
-        if (ip != "")
+        if (!ip.isEmpty())
             mItemsMap.insert(ip, it);
         else
             mMeItem = it;

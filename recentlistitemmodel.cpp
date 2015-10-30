@@ -38,6 +38,9 @@ RecentListItemModel::RecentListItemModel() :
 #endif
 }
 
+Q_CONSTEXPR double BYTES_TO_KB = 1.0 / 1024;
+Q_CONSTEXPR double BYTES_TO_MB = 1.0 / 1048576;
+
 void RecentListItemModel::addRecent(QString name, QString value, QString type, QString sender, qint64 size)
 {
     QStandardItem* it = new QStandardItem();
@@ -51,9 +54,9 @@ void RecentListItemModel::addRecent(QString name, QString value, QString type, Q
     if (size < 1024)
         sizeFormatted = QString::number(size) + " B";
     else if (size < 1048576)
-        sizeFormatted = QString::number(size * 1.0 / 1024, 'f', 1) + " KB";
+        sizeFormatted = QString::number(size * BYTES_TO_KB, 'f', 1) + " KB";
     else
-        sizeFormatted = QString::number(size * 1.0 / 1048576, 'f', 1) + " MB";
+        sizeFormatted = QString::number(size * BYTES_TO_MB, 'f', 1) + " MB";
 
     // Icon
     if (type == "text")
