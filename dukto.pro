@@ -37,7 +37,6 @@ SOURCES += main.cpp \
     platform.cpp \
     buddylistitemmodel.cpp \
     duktoprotocol.cpp \
-    miniwebserver.cpp \
     ipaddressitemmodel.cpp \
     recentlistitemmodel.cpp \
     settings.cpp \
@@ -57,7 +56,6 @@ HEADERS += \
     buddylistitemmodel.h \
     duktoprotocol.h \
     peer.h \
-    miniwebserver.h \
     ipaddressitemmodel.h \
     recentlistitemmodel.h \
     settings.h \

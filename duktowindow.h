@@ -28,8 +28,6 @@ class GuiBehind;
 
 class DuktoWindow : public QmlApplicationViewer
 {
-    Q_OBJECT
-
 public:
     explicit DuktoWindow(QWidget *parent = 0);
     void setGuiBehindReference(GuiBehind* ref);
@@ -46,10 +44,6 @@ protected:
     void dragLeaveEvent(QDragLeaveEvent *event);
     void dropEvent(QDropEvent *event);
     void closeEvent(QCloseEvent *);
-
-signals:
-
-public slots:
 
 private:
     GuiBehind *mGuiBehind;

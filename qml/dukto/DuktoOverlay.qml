@@ -30,7 +30,7 @@ Rectangle {
     Rectangle {
         id: disabler
         anchors.fill: parent
-        color: theme.color9
+        color: "#ccffffff"
         opacity: 0
         visible: false
 

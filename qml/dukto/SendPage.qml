@@ -20,7 +20,7 @@ import QtQuick 1.0
 
 Rectangle {
     id: sendPage
-    color: theme.color6
+    color: "#ffffff"
 
     signal back()
     signal showTextPage()
@@ -97,7 +97,7 @@ Rectangle {
         anchors.bottom: localBuddy.bottom
         anchors.bottomMargin: 5
         anchors.rightMargin: 20
-        border.color: theme.color5
+        border.color: "#888888"
         border.width: 2
         width: 225
         height: 25
@@ -109,7 +109,7 @@ Rectangle {
             readOnly: false
             smooth: true
             font.pixelSize: 14
-            color: theme.color5
+            color: "#888888"
             selectByMouse: true
             focus: true
         }
@@ -127,7 +127,7 @@ Rectangle {
         anchors.top: localBuddy.bottom
         anchors.topMargin: 35
         font.pixelSize: 17
-        color: theme.color4
+        color: "#555555"
         text: "What do you want to do?"
     }
 
@@ -192,7 +192,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 20
         font.pixelSize: 14
-        color: theme.color5
+        color: "#888888"
         text: "Or simply drag & drop some files and folders\nover this window to send them to your buddy."
     }
 }

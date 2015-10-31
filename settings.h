@@ -24,7 +24,6 @@
 
 class Settings : public QObject
 {
-    Q_OBJECT
 public:
     explicit Settings(QObject *parent = 0);
     QString currentPath();
@@ -37,10 +36,6 @@ public:
     bool showTermsOnStart();
     QString buddyName();
     void saveBuddyName(QString name);
-
-signals:
-
-public slots:
 
 private:
     QSettings mSettings;

@@ -23,7 +23,6 @@
 
 class RecentListItemModel : public QStandardItemModel
 {
-    Q_OBJECT
 public:
     explicit RecentListItemModel();
     void addRecent(QString name, QString value, QString type, QString sender, qint64 size);
@@ -37,11 +36,6 @@ public:
         Sender,
         Size
     };
-
-signals:
-
-public slots:
-
 };
 
 #endif // RECENTLISTITEMMODEL_H

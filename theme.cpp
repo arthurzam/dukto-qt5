@@ -25,9 +25,7 @@ const QString Theme::DEFAULT_THEME_COLOR = "#248b00";
 
 Theme::Theme(QObject *parent) :
     QObject(parent),
-    mColor1("#000000"), mColor2(DEFAULT_THEME_COLOR), mColor3("#4cb328"),
-    mColor4("#555555"), mColor5("#888888"), mColor6("#ffffff"),
-    mColor7("#cccccc"), mColor8("#eeeeee"), mColor9("#ccffffff")
+    mColor2(DEFAULT_THEME_COLOR), mColor3("#4cb328")
 {
 }
 

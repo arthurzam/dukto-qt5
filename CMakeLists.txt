@@ -30,20 +30,19 @@ else()
 endif()
 
 set(DUKTO_HDR
-    platform.h
     buddylistitemmodel.h
-    peer.h
+    duktowindow.h
     ipaddressitemmodel.h
+    peer.h
+    platform.h
+    recentlistitemmodel.h
+    settings.h
 )
 
 set(DUKTO_MOC_HDR
     destinationbuddy.h
     duktoprotocol.h
-    duktowindow.h
     guibehind.h
-    miniwebserver.h
-    recentlistitemmodel.h
-    settings.h
     systemtray.h
     theme.h
     qmlapplicationviewer/qmlapplicationviewer.h
@@ -55,7 +54,6 @@ set(DUKTO_SRC
     platform.cpp
     buddylistitemmodel.cpp
     duktoprotocol.cpp
-    miniwebserver.cpp
     ipaddressitemmodel.cpp
     recentlistitemmodel.cpp
     settings.cpp

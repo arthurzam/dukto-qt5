@@ -101,7 +101,7 @@ Rectangle {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
-                color: theme.color6
+                color: "#ffffff"
                 width: parent.width * guiBehind.currentTransferProgress / 100;
             }
         }

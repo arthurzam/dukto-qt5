@@ -153,7 +153,7 @@ public slots:
     void transferStatusUpdate(qint64 total, qint64 partial);
     void receiveFileComplete(QStringList *files, qint64 totalSize);
     void receiveTextComplete(QString *text, qint64 totalSize);
-    void sendFileComplete(QStringList *files);
+    void sendFileComplete();
     void sendFileError(int code);
     void receiveFileCancelled();
     void sendFileAborted();
@@ -183,8 +183,6 @@ private:
     DuktoWindow *mView;
     QTimer *mShowBackTimer;
     QTimer *mPeriodicHelloTimer;
-    QClipboard *mClipboard;
-    MiniWebServer *mMiniWebServer;
     Settings *mSettings;
     DestinationBuddy *mDestBuddy;
     BuddyListItemModel mBuddiesList;

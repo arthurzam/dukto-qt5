@@ -41,14 +41,14 @@ Item {
         x: 22
         font.pixelSize: 100
         text: "Dukto R6"
-        color: theme.color4
+        color: "#555555"
     }
     SmoothText {
         x: 25
         y: 70 + 75
         font.pixelSize: 38
         text: "Created by Emanuele Colombo"
-        color: theme.color5
+        color: "#888888"
     }
     SmoothText {
         x: 25
@@ -56,7 +56,7 @@ Item {
         font.pixelSize: 32
         text: "Website: <a href=\"http://www.msec.it/dukto/\">http://www.msec.it/dukto/</a>"
         onLinkActivated: Qt.openUrlExternally(link)
-        color: theme.color5
+        color: "#888888"
     }
 
     SText {
@@ -66,7 +66,7 @@ Item {
         anchors.leftMargin: 25
         y: 240
         font.pixelSize: 12
-        color: theme.color5
+        color: "#888888"
         wrapMode: "WordWrap"
         text: "This application and it's source code are released freely as open source project.<br>If you like this application please consider <a href=\"http://www.msec.it/\">making a donation</a>."
         onLinkActivated: Qt.openUrlExternally(link)

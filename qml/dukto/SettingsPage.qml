@@ -20,7 +20,7 @@ import QtQuick 1.0
 
 Rectangle {
     id: settingsPage
-    color: theme.color6
+    color: "#ffffff"
 
     signal back()
 
@@ -66,7 +66,7 @@ Rectangle {
         anchors.topMargin: 70
         font.pixelSize: 16
         text: "Save received file in:"
-        color: theme.color5
+        color: "#888888"
     }
 
     Rectangle {
@@ -116,7 +116,7 @@ Rectangle {
         anchors.topMargin: 40
         font.pixelSize: 16
         text: "Theme color:"
-        color: theme.color5
+        color: "#888888"
     }
 
     ColorPicker {

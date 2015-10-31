@@ -20,7 +20,7 @@ import QtQuick 1.0
 
 Rectangle {
     state: "buddies"
-    color: theme.color6
+    color: "#ffffff"
 
     signal showIpList()
     signal showSettings()

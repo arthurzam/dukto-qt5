@@ -20,7 +20,7 @@ import QtQuick 1.0
 
 Rectangle {
     id: showTextPage
-    color: theme.color6
+    color: "#ffffff"
 
     signal back()
     signal backOnSend()
@@ -74,7 +74,7 @@ Rectangle {
         elide: "ElideRight"
         font.pixelSize: 16
         text: (guiBehind.textSnippetSending ? "to " : "from ") + guiBehind.textSnippetBuddy
-        color: theme.color5
+        color: "#888888"
     }
 
 
@@ -113,7 +113,7 @@ Rectangle {
 
             TextEdit {
                 id: textEditSnippet
-                color: theme.color4
+                color: "#555555"
                 width: rectangleText.width - 10
                 font.family: duktofontsmall.name
                 font.pixelSize: 13

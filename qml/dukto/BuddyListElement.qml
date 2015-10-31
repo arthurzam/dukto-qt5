@@ -127,7 +127,7 @@ Flipable {
            anchors.rightMargin: 20
            font.pixelSize: 16
            elide: "ElideRight"
-           color: theme.color4
+           color: "#555555"
        }
        SText {
            id: buddySystemText
@@ -139,7 +139,7 @@ Flipable {
            anchors.rightMargin: 20
            font.pixelSize: 14
            elide: "ElideRight"
-           color: theme.color4
+           color: "#555555"
        }
    }
 

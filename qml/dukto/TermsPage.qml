@@ -20,7 +20,7 @@ import QtQuick 1.0
 
 Rectangle {
     id: termsPage
-    color: theme.color6
+    color: "#ffffff"
 
     signal ok()
 
@@ -49,7 +49,7 @@ Rectangle {
         anchors.topMargin: 45
         font.pixelSize: 16
         text: "Please read and press 'accept'"
-        color: theme.color5
+        color: "#888888"
     }
 
 
@@ -88,7 +88,7 @@ Rectangle {
 
             TextEdit {
                 id: textEditSnippet
-                color: theme.color5
+                color: "#888888"
                 width: rectangleText.width - 10
                 font.family: duktofontsmall.name
                 font.pixelSize: 13

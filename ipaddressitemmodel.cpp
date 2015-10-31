@@ -49,8 +49,13 @@ void IpAddressItemModel::refreshIpList()
 
     // Load IP list
     QList<QHostAddress> addrs = QNetworkInterface::allAddresses();
-    for (int i = 0; i < addrs.length(); i++)
-        if ((addrs[i].protocol() == QAbstractSocket::IPv4Protocol)
-            && (addrs[i].toString() != "127.0.0.1"))
-            addIp(addrs[i].toString());
+    for(QList<QHostAddress>::iterator iter = addrs.begin(); iter != addrs.end(); ++iter)
+    {
+        if(iter->protocol() == QAbstractSocket::IPv4Protocol)
+        {
+            QString addr = iter->toString();
+            if(addr != "127.0.0.1")
+                addIp(addr);
+        }
+    }
 }

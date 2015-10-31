@@ -27,6 +27,7 @@
 #include <QtNetwork/QHostInfo>
 #include <QHash>
 #include <QFile>
+#include <QStringList>
 
 #include "peer.h"
 
@@ -63,7 +64,7 @@ public slots:
 signals:
      void peerListAdded(Peer peer);
      void peerListRemoved(Peer peer);
-     void sendFileComplete(QStringList *files);
+     void sendFileComplete();
      void sendFileError(int code);
      void sendFileAborted();
      void receiveFileStart(QString senderIp);
@@ -74,9 +75,9 @@ signals:
 
 private:
     QString getSystemSignature();
-    QStringList* expandTree(QStringList files);
-    void addRecursive(QStringList *e, QString path);
-    qint64 computeTotalSize(QStringList *e);
+    QStringList expandTree(const QStringList& files);
+    void addRecursive(QStringList& e, QString path);
+    qint64 computeTotalSize(const QStringList& e);
     QByteArray nextElementHeader();
     void sendToAllBroadcast(const QByteArray& packet, qint16 port);
     void closeCurrentTransfer(bool aborted = false);
@@ -97,10 +98,10 @@ private:
     bool mIsReceiving;
     QFile *mCurrentFile;            // Puntatore al file aperto corrente
     qint64 mTotalSize;              // Quantità totale di dati da inviare o ricevere
-    int mFileCounter;              // Puntatore all'elemento correntemente da trasmettere o ricevere
+    int mFileCounter;               // Puntatore all'elemento correntemente da trasmettere o ricevere
 
     // Sending members
-    QStringList *mFilesToSend;      // Elenco degli elementi da trasmettere
+    QStringList mFilesToSend;       // Elenco degli elementi da trasmettere
     qint64 mSentData;               // Quantità di dati totale trasmessi
     qint64 mSentBuffer;             // Quantità di dati rimanenti nel buffer di trasmissione
     QString mBasePath;              // Percorso base per l'invio di file e cartelle

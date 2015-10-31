@@ -521,8 +521,8 @@ void DuktoProtocol::sendText(QString ipDest, qint16 port, QString text)
     mIsSending = true;
 
     // Testo da inviare
-    mFilesToSend = new QStringList();
-    mFilesToSend->append("___DUKTO___TEXT___");
+    mFilesToSend.clear();
+    mFilesToSend.append("___DUKTO___TEXT___");
     mFileCounter = 0;
     mTextToSend = text;
 
@@ -580,7 +580,7 @@ void DuktoProtocol::sendMetaData()
     qint64 tmp;
 
     // N. entità
-    tmp = mFilesToSend->count();
+    tmp = mFilesToSend.count();
     header.append((char*) &tmp, sizeof(tmp));
     // Dimensione totale
     mTotalSize = computeTotalSize(mFilesToSend);
@@ -619,7 +619,7 @@ void DuktoProtocol::sendData(qint64 b)
 
     // Se si tratta di un invio testuale, butto dentro
     // tutto il testo
-    if ((!mTextToSend.isEmpty()) && (mFilesToSend->at(mFileCounter - 1) == "___DUKTO___TEXT___"))
+    if ((!mTextToSend.isEmpty()) && (mFilesToSend.at(mFileCounter - 1) == "___DUKTO___TEXT___"))
     {
         d.append(mTextToSend.toUtf8().data());
         mCurrentSocket->write(d);
@@ -677,11 +677,8 @@ void DuktoProtocol::closeCurrentTransfer(bool aborted)
     }
     mIsSending = false;
     if (!aborted)
-        emit sendFileComplete(mFilesToSend);
-    delete mFilesToSend;
-    mFilesToSend = NULL;
-
-    return;
+        emit sendFileComplete();
+    mFilesToSend.clear();
 }
 
 // Aggiornamento delle statistiche di invio
@@ -714,16 +711,16 @@ void DuktoProtocol::sendConnectError(QAbstractSocket::SocketError e)
 
 // Dato un elenco di file e cartelle, viene espanso in modo da
 // contenere tutti i file e le cartelle contenuti
-QStringList* DuktoProtocol::expandTree(QStringList files)
+QStringList DuktoProtocol::expandTree(const QStringList& files)
 {
     // Percorso base
-    QString bp = files.at(0);
+    QString bp = files.first();
     if (bp.right(1) == "/") bp.chop(1);
     mBasePath = QFileInfo(bp).absolutePath();
     if (mBasePath.right(1) == "/") mBasePath.chop(1);
 
     // Iterazione sugli elementi
-    QStringList* expanded = new QStringList();
+    QStringList expanded;
     for (int i = 0; i < files.count(); i++)
         addRecursive(expanded, files.at(i));
 
@@ -731,13 +728,12 @@ QStringList* DuktoProtocol::expandTree(QStringList files)
 }
 
 // Aggiunge ricorsivamente tutte le cartelle e file contenuti in una cartella
-void DuktoProtocol::addRecursive(QStringList *e, QString path)
+void DuktoProtocol::addRecursive(QStringList& e, QString path)
 {
-
     path.replace("//", "/");
     path.replace("\\", "/");
     if (path.right(1) == "/") path.chop(1);
-    e->append(path);
+    e.append(path);
 
     QFileInfo fi(path);
     if (fi.isDir())
@@ -755,8 +751,8 @@ QByteArray DuktoProtocol::nextElementHeader()
     QByteArray header;
 
     // Ricava il nome del file (se non è l'ultimo)
-    if (mFilesToSend->size() == mFileCounter) return header;
-    QString fullname = mFilesToSend->at(mFileCounter++);
+    if (mFilesToSend.size() == mFileCounter) return header;
+    QString fullname = mFilesToSend.at(mFileCounter++);
 
     // Chiusura file precedente, se non è già stato chiuso
     if (mCurrentFile) {
@@ -805,18 +801,19 @@ QByteArray DuktoProtocol::nextElementHeader()
 }
 
 // Calcola l'occupazione totale di tutti i file da trasferire
-qint64 DuktoProtocol::computeTotalSize(QStringList *e)
+qint64 DuktoProtocol::computeTotalSize(const QStringList& e)
 {
     // Se è un invio testuale
-    if ((e->length() == 1) && (e->at(0) == "___DUKTO___TEXT___"))
+    if ((e.length() == 1) && (e.first() == "___DUKTO___TEXT___"))
         return mTextToSend.toUtf8().length();
 
     // Se è un invio normale
     qint64 size = 0;
-    for (int i = 0; i < e->count(); i++)
+    for(QStringList::const_iterator iter = e.constBegin(); iter != e.constEnd(); ++iter)
     {
-        QFileInfo fi(e->at(i));
-        if (!fi.isDir()) size += fi.size();
+        QFileInfo fi(*iter);
+        if (!fi.isDir())
+            size += fi.size();
     }
     return size;
 }

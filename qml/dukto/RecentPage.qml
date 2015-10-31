@@ -31,7 +31,7 @@ Item {
         anchors.top: parent.top
         font.pixelSize: 160
         text: ":-("
-        color: theme.color4
+        color: "#555555"
         visible: (recentList.count == 0)
     }
 
@@ -41,7 +41,7 @@ Item {
         anchors.left: parent.left
         anchors.leftMargin: 40
         font.pixelSize: 17
-        color: theme.color4
+        color: "#555555"
         text: "Sorry, no data has been\nreceived yet..."
         visible: (recentList.count == 0)
     }
@@ -107,7 +107,7 @@ Item {
                      anchors.right: parent.right
                      anchors.rightMargin: 20
                      font.pixelSize: 14
-                     color: theme.color4
+                     color: "#555555"
                      elide: "ElideRight"
                      text: name
                  }
@@ -120,7 +120,7 @@ Item {
                      anchors.bottomMargin: -1
                      font.pixelSize: 12
                      elide: "ElideRight"
-                     color: theme.color5
+                     color: "#888888"
                      text: "from " + sender + ", " + dateTime
                  }
              }

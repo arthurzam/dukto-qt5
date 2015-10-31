@@ -36,7 +36,7 @@ Item {
             font.pixelSize: 84
             text: "buddies"
             transformOrigin: Item.TopLeft
-            color: buddyTextMouseArea.containsMouse ? theme.color3 : theme.color7
+            color: buddyTextMouseArea.containsMouse ? theme.color3 : "#cccccc"
             scale: 0.5
 
             MouseArea {
@@ -56,7 +56,7 @@ Item {
             font.pixelSize: 84
             text: "recent"
             transformOrigin: Item.TopLeft
-            color: recentTextMouseArea.containsMouse ? theme.color3 : theme.color7
+            color: recentTextMouseArea.containsMouse ? theme.color3 : "#cccccc"
             scale: 0.5
 
             MouseArea {
@@ -74,7 +74,7 @@ Item {
             id: aboutText
             x: 320
             font.pixelSize: 84
-            color: aboutTextMouseArea.containsMouse ? theme.color3 : theme.color7
+            color: aboutTextMouseArea.containsMouse ? theme.color3 : "#cccccc"
             text: "about"
             MouseArea {
                 id: aboutTextMouseArea

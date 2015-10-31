@@ -19,7 +19,6 @@
 #include "guibehind.h"
 
 #include "settings.h"
-#include "miniwebserver.h"
 #include "duktowindow.h"
 #include "platform.h"
 #include "updateschecker.h"
@@ -57,20 +56,19 @@
 
 GuiBehind::GuiBehind(DuktoWindow* view) :
     QObject(NULL), mView(view), mShowBackTimer(NULL), mPeriodicHelloTimer(NULL),
-    mClipboard(NULL), mMiniWebServer(NULL), mSettings(NULL), mDestBuddy(NULL)
+    mSettings(NULL), mDestBuddy(NULL)
 #ifdef UPDATER
     ,mUpdatesChecker(NULL)
 #endif
-{    
+{
     // Status variables
     mView->setGuiBehindReference(this);
-    setCurrentTransferProgress(0);
-    setTextSnippetSending(false);
-    setShowUpdateBanner(false);
+    mCurrentTransferProgress = 0;
+    mTextSnippetSending = false;
+    mShowUpdateBanner = false;
 
     // Clipboard object
-    mClipboard = QApplication::clipboard();
-    connect(mClipboard, SIGNAL(dataChanged()), this, SLOT(clipboardChanged()));
+    connect(QApplication::clipboard(), SIGNAL(dataChanged()), this, SLOT(clipboardChanged()));
     clipboardChanged();
 
     // Add "Me" entry
@@ -81,9 +79,6 @@ GuiBehind::GuiBehind(DuktoWindow* view) :
 
     // Settings
     mSettings = new Settings(this);
-
-    // Mini web server
-    mMiniWebServer = new MiniWebServer(NETWORK_PORT + 1);
 
     // Destination buddy
     mDestBuddy = new DestinationBuddy(this);
@@ -109,7 +104,7 @@ GuiBehind::GuiBehind(DuktoWindow* view) :
     connect(&mDuktoProtocol, SIGNAL(transferStatusUpdate(qint64,qint64)), this, SLOT(transferStatusUpdate(qint64,qint64)));
     connect(&mDuktoProtocol, SIGNAL(receiveFileComplete(QStringList*,qint64)), this, SLOT(receiveFileComplete(QStringList*,qint64)));
     connect(&mDuktoProtocol, SIGNAL(receiveTextComplete(QString*,qint64)), this, SLOT(receiveTextComplete(QString*,qint64)));
-    connect(&mDuktoProtocol, SIGNAL(sendFileComplete(QStringList*)), this, SLOT(sendFileComplete(QStringList*)));
+    connect(&mDuktoProtocol, SIGNAL(sendFileComplete()), this, SLOT(sendFileComplete()));
     connect(&mDuktoProtocol, SIGNAL(sendFileError(int)), this, SLOT(sendFileError(int)));
     connect(&mDuktoProtocol, SIGNAL(receiveFileCancelled()), this, SLOT(receiveFileCancelled()));
     connect(&mDuktoProtocol, SIGNAL(sendFileAborted()), this, SLOT(sendFileAborted()));
@@ -129,7 +124,6 @@ GuiBehind::GuiBehind(DuktoWindow* view) :
 
     // Load GUI
     view->setSource(QUrl("qrc:/qml/dukto/Dukto.qml"));
-    //view->setSource(QUrl::fromLocalFile("c:/users/emanuele/documenti/dukto/qml/dukto/Dukto.qml"));
 #ifndef Q_WS_S60
     view->restoreGeometry(mSettings->windowGeometry());
 #endif
@@ -146,11 +140,6 @@ GuiBehind::GuiBehind(DuktoWindow* view) :
     connect(mUpdatesChecker, SIGNAL(updatesAvailable()), this, SLOT(showUpdatesMessage()));
     QTimer::singleShot(2000, mUpdatesChecker, SLOT(start()));
 #endif
-
-    // TEMP
-    // Peer p(QHostAddress("172.16.3.3"), "Pippo at Pluto (Macintosh)");
-    // Peer p(QHostAddress("172.16.3.3"), "NomeUtenteMoltoLungoCheNonCiSta at IlMioPcCheHaUnNomeImpensabilmenteLungo (Macintosh)", 4644);
-    // peerListAdded(p);
 }
 
 GuiBehind::~GuiBehind()
@@ -160,7 +149,6 @@ GuiBehind::~GuiBehind()
 #ifdef UPDATER
     if (mUpdatesChecker) mUpdatesChecker->deleteLater();
 #endif
-    if (mMiniWebServer) mMiniWebServer->deleteLater();
     if (mShowBackTimer) mShowBackTimer->deleteLater();
     if (mPeriodicHelloTimer) mPeriodicHelloTimer->deleteLater();
     if (mView) mView->deleteLater();
@@ -203,7 +191,7 @@ void GuiBehind::showRandomBack()
 
 void GuiBehind::clipboardChanged()
 {
-    mClipboardTextAvailable = !(mClipboard->text().isEmpty());
+    mClipboardTextAvailable = !(QApplication::clipboard()->text().isEmpty());
     emit clipboardTextAvailableChanged();
 }
 
@@ -391,7 +379,7 @@ void GuiBehind::sendFolder()
 void GuiBehind::sendClipboardText()
 {
     // Get text to send
-    QString text = mClipboard->text();
+    QString text = QApplication::clipboard()->text();
 #ifndef Q_WS_S60
     if (text.isEmpty()) return;
 #else
@@ -530,11 +518,8 @@ bool GuiBehind::prepareStartTransfer(QString *ip, qint16 *port)
     return true;
 }
 
-void GuiBehind::sendFileComplete(QStringList *files)
+void GuiBehind::sendFileComplete()
 {
-    // To remove warning
-    files = files;
-
     // Show completed message
     setMessagePageTitle("Send");
 #ifndef Q_WS_S60
@@ -551,8 +536,7 @@ void GuiBehind::sendFileComplete(QStringList *files)
     // Check for temporary file to delete
     if (!mScreenTempPath.isEmpty()) {
 
-        QFile file(mScreenTempPath);
-        file.remove();
+        QFile(mScreenTempPath).remove();
         mScreenTempPath.clear();
     }
 
