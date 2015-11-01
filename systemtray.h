@@ -27,13 +27,20 @@ class SystemTray : public QSystemTrayIcon
 {
         Q_OBJECT
     public:
+        static SystemTray* tray;
+
         SystemTray(DuktoWindow& window, QObject *parent = 0);
+        ~SystemTray();
 
     private slots:
         void on_activated(QSystemTrayIcon::ActivationReason reason);
+        void received_file(QStringList *files, qint64);
+        void received_text(QString *text, qint64);
 
     private:
         DuktoWindow& window;
+
+        void notify(QString title, QString body);
 };
 
 #endif // SYSTEMTRAY_H

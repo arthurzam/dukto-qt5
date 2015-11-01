@@ -91,3 +91,8 @@ mac:ICON = dukto.icns
 
 # Allow network access on Symbian
 symbian:TARGET.CAPABILITY += NetworkServices
+
+### libnotify
+CONFIG+=link_pkgconfig
+PKGCONFIG+=libnotify
+DEFINES+=NOTIFY_LIBNOTIFY

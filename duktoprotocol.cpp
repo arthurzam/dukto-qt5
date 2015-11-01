@@ -117,8 +117,11 @@ void DuktoProtocol::sayHello(QHostAddress dest, qint16 port)
 
     // Invio pacchetto
     if (dest == QHostAddress::Broadcast) {
-        sendToAllBroadcast(packet, port);
-        if (port != DEFAULT_UDP_PORT) sendToAllBroadcast(packet, DEFAULT_UDP_PORT);
+        QList<qint16> ports;
+        ports.append(DEFAULT_UDP_PORT);
+        if (port != DEFAULT_UDP_PORT)
+            ports.append(port);
+        sendToAllBroadcast(packet, ports);
     }
     else
         mSocket->writeDatagram(packet.data(), packet.length(), dest, port);
@@ -129,19 +132,18 @@ void DuktoProtocol::sayGoodbye()
     // Create packet
     QByteArray packet;
     packet.append(MSG_GOODBYE);
-    packet.append("Bye Bye");
 
     // Look for all the discovered ports
     QList<qint16> ports;
     ports.append(mLocalUdpPort);
     if (mLocalUdpPort != DEFAULT_UDP_PORT) ports.append(DEFAULT_UDP_PORT);
-    foreach (const Peer &p, mPeers.values())
-        if (!ports.contains(p.port))
-            ports.append(p.port);
+    QList<Peer> values = mPeers.values();
+    for(QList<Peer>::const_iterator p = values.constBegin(); p != values.constEnd(); ++p)
+        if(!ports.contains(p->port))
+            ports.append(p->port);
 
     // Send broadcast message to all discovered ports
-    foreach (const qint16 &port, ports)
-        sendToAllBroadcast(packet, port);
+    sendToAllBroadcast(packet, ports);
 }
 
 void DuktoProtocol::newUdpData()
@@ -149,7 +151,6 @@ void DuktoProtocol::newUdpData()
     while (mSocket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(65536);  // Theoretical max length in IPv4
-        // datagram.resize(mSocket->pendingDatagramSize());
         QHostAddress sender;
         quint16 senderPort;
         int size = mSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
@@ -197,41 +198,30 @@ void DuktoProtocol::handleMessage(QByteArray &data, QHostAddress &sender)
 // Richiesta connessione TCP in ingresso
 void DuktoProtocol::newIncomingConnection()
 {
+    // Recieve connection
+    QTcpSocket* s = mTcpServer->nextPendingConnection();
+    if(s == NULL) return;
 
-    // Verifica presenza connessione pendente
-    if (!mTcpServer->hasPendingConnections()) return;
-
-    // Recupero connessione
-    QTcpSocket *s = mTcpServer->nextPendingConnection();
-
-    // Se sto già ricevendo o inviando, rifiuto la connessione
-    if (mIsReceiving || mIsSending)
+    // If we are already recieving or sending
+    // Pending header connection (timeout 10 sec)
+    if ((mIsReceiving | mIsSending) || !s->waitForReadyRead(10000))
     {
         s->close();
+        delete s;
         return;
     }
 
-    // Aggiornamento interfaccia grafica
+    // Update GUI
     receiveFileStart(s->peerAddress().toString());
 
-    // Impostazione socket TCP corrente
+    // set current TCP socket
     mCurrentSocket = s;
 
-    // Attesa header della connessione (timeout 10 sec)
-    if (!s->waitForReadyRead(10000))
-    {
-        // Non ho ricevuto l'header della connessione, chiudo
-        mCurrentSocket->close();
-        delete mCurrentSocket;
-        mCurrentSocket = NULL;
-        return;
-    }
-
-    // Registrazione gestori eventi socket
+    // Register socket's event handlers
     connect(mCurrentSocket, SIGNAL(readyRead()), this, SLOT(readNewData()), Qt::DirectConnection);
     connect(mCurrentSocket, SIGNAL(disconnected()), this, SLOT(closedConnectionTmp()), Qt::QueuedConnection);
 
-    // Inizializzazione variabili
+    // Initialize variables
     mIsReceiving = true;
     mTotalReceivedData = 0;
     mElementSize = -1;
@@ -241,193 +231,181 @@ void DuktoProtocol::newIncomingConnection()
     mReceivingText = false;
     mRecvStatus = FILENAME;
 
-    // -- Lettura header generale --
-    // Numero entità da ricevere
+    // -- Reading General header --
+    // Entities number to receive
     mCurrentSocket->read((char*) &mElementsToReceiveCount, sizeof(qint64));
-    // Dimensione totale
+    // total size
     mCurrentSocket->read((char*) &mTotalSize, sizeof(qint64));
 
-    // Inizio lettura dati sui file
+    // Start reading data on file
     readNewData();
-
 }
 
 // Processo di lettura principale
 void DuktoProtocol::readNewData()
 {
-
     // Fino a che ci sono dati da leggere
     while (mCurrentSocket->bytesAvailable() > 0)
     {
-
         // In base allo stato in cui mi trovo leggo quello che mi aspetto
         switch (mRecvStatus)
         {
-
             case FILENAME:
-        {
-            char c;
-            while (1) {
-                        int ret = mCurrentSocket->read(&c, sizeof(c));
-                        if (ret < 1) return;
-                        if (c == '\0')
-                        {
-                            mRecvStatus = FILESIZE;
-                            break;
-                        }
-                mPartialName.append(c);
-            }
+            {
+                char c;
+                while (true) {
+                    if (mCurrentSocket->read(&c, sizeof(c)) < 1) return;
+                    if (c == '\0')
+                    {
+                        mRecvStatus = FILESIZE;
+                        break;
+                    }
+                    mPartialName.append(c);
                 }
                 break;
-
+            }
             case FILESIZE:
-                {
-                    if(mCurrentSocket->bytesAvailable() < (int)sizeof(qint64)) return;
-            mCurrentSocket->read((char*) &mElementSize, sizeof(qint64));
-            mElementReceivedData = 0;
-                    QString name = QString::fromUtf8(mPartialName);
-                    mPartialName.clear();
-
-            // Se l'elemento corrente è una cartella, la creo e passo all'elemento successivo
-            if (mElementSize == -1)
             {
-                // Verifico il nome della cartella "root"
-                QString rootName = name.section("/", 0, 0);
+                if(mCurrentSocket->bytesAvailable() < (int)sizeof(qint64)) return;
+                mCurrentSocket->read((char*) &mElementSize, sizeof(qint64));
+                mElementReceivedData = 0;
+                QString name = QString::fromUtf8(mPartialName);
+                mPartialName.clear();
 
-                // Se non ho ancora trattato questa root, lo faccio ora
-                if (mRootFolderName != rootName) {
+                // Se l'elemento corrente è una cartella, la creo e passo all'elemento successivo
+                if (mElementSize == -1)
+                {
+                    // Verifico il nome della cartella "root"
+                    // Se non ho ancora trattato questa root, lo faccio ora
+                    if (mRootFolderName != name.section("/", 0, 0)) {
 
-                    // Verifico se ho già una cartella con questo nome
-                    // nel caso trovo un nome alternativo
+                        // Verifico se ho già una cartella con questo nome
+                        // nel caso trovo un nome alternativo
+                        int i = 2;
+                        QString originalName = name;
+                        while (QFile::exists(name))
+                            name = originalName + " (" + QString::number(i++) + ")";
+                        mRootFolderName = originalName;
+                        mRootFolderRenamed = name;
+                        mReceivedFiles->append(name);
+
+                    }
+
+                    // Se invece l'ho già trattata, allora rinomino questo percorso
+                    else if (mRootFolderName != mRootFolderRenamed)
+                        name = name.replace(0, name.indexOf('/'), mRootFolderRenamed);
+
+                    // Creo la cartella
+                    if (!QDir(".").mkpath(name))
+                    {
+                        emit receiveFileCancelled();
+                        // Chiusura socket
+                        if (mCurrentSocket)
+                        {
+                            mCurrentSocket->disconnect();
+                            mCurrentSocket->disconnectFromHost();
+                            mCurrentSocket->close();
+                            mCurrentSocket->deleteLater();
+                            mCurrentSocket = NULL;
+                        }
+
+                        // Rilascio memoria
+                        delete mReceivedFiles;
+                        mReceivedFiles = NULL;
+
+                        // Impostazione stato
+                        mIsReceiving = false;
+                        return;
+                    }
+                    mRecvStatus = FILENAME;
+                    break;
+                }
+
+                // Potrebbe essere un invio di testo
+                else if (name == "___DUKTO___TEXT___")
+                {
+                    mReceivedFiles->append(name);
+                    mReceivingText = true;
+                    mTextToReceive.clear();
+                    mCurrentFile = NULL;
+                }
+
+                // Altrimenti creo il nuovo file
+                else
+                {
+                    // Se il file è in una cartella rinominata, devo provvedere di conseguenza
+                    if ((name.indexOf('/') != -1) && (name.section("/", 0, 0) == mRootFolderName))
+                        name = name.replace(0, name.indexOf('/'), mRootFolderRenamed);
+
+                    // Se il file esiste già cambio il nome di quello nuovo
                     int i = 2;
                     QString originalName = name;
-                    while (QFile::exists(name))
-                        name = originalName + " (" + QString::number(i++) + ")";
-                    mRootFolderName = originalName;
-                    mRootFolderRenamed = name;
-                    mReceivedFiles->append(name);
-
-                }
-
-                // Se invece l'ho già trattata, allora rinomino questo percorso
-                else if (mRootFolderName != mRootFolderRenamed)
-                    name = name.replace(0, name.indexOf('/'), mRootFolderRenamed);
-
-                // Creo la cartella
-                QDir dir(".");
-                        bool ret = dir.mkpath(name);
-                        if (!ret)
-                        {
-                            emit receiveFileCancelled();
-                            // Chiusura socket
-                            if (mCurrentSocket)
-                            {
-                                mCurrentSocket->disconnect();
-                                mCurrentSocket->disconnectFromHost();
-                                mCurrentSocket->close();
-                                mCurrentSocket->deleteLater();
-                                mCurrentSocket = NULL;
-                            }
-
-                            // Rilascio memoria
-                            delete mReceivedFiles;
-                            mReceivedFiles = NULL;
-
-                            // Impostazione stato
-                            mIsReceiving = false;
-                            return;
-                        }
-                        mRecvStatus = FILENAME;
-                        break;
-            }
-
-            // Potrebbe essere un invio di testo
-            else if (name == "___DUKTO___TEXT___")
-            {
-                mReceivedFiles->append(name);
-                mReceivingText = true;
-                mTextToReceive.clear();
-                mCurrentFile = NULL;
-            }
-
-            // Altrimenti creo il nuovo file
-            else
-            {
-                // Se il file è in una cartella rinominata, devo provvedere di conseguenza
-                if ((name.indexOf('/') != -1) && (name.section("/", 0, 0) == mRootFolderName))
-                    name = name.replace(0, name.indexOf('/'), mRootFolderRenamed);
-
-                // Se il file esiste già cambio il nome di quello nuovo
-                int i = 2;
-                QString originalName = name;
-                while (QFile::exists(name)) {
-                    QFileInfo fi(originalName);
-                    name = fi.baseName() + " (" + QString::number(i) + ")." + fi.completeSuffix();
-                    i++;
-                }
-                mReceivedFiles->append(name);
-                mCurrentFile = new QFile(name);
-                        bool ret = mCurrentFile->open(QIODevice::WriteOnly);
-                        if (!ret)
-                        {
-                            emit receiveFileCancelled();
-                            // Chiusura socket
-                            if (mCurrentSocket)
-                            {
-                                mCurrentSocket->disconnect();
-                                mCurrentSocket->disconnectFromHost();
-                                mCurrentSocket->close();
-                                mCurrentSocket->deleteLater();
-                                mCurrentSocket = NULL;
-            }
-
-                            // Rilascio memoria
-                            delete mReceivedFiles;
-                            mReceivedFiles = NULL;
-
-                            // Impostazione stato
-                            mIsReceiving = false;
-                            return;
-        }
-                        mReceivingText = false;
+                    while (QFile::exists(name)) {
+                        QFileInfo fi(originalName);
+                        name = fi.baseName() + " (" + QString::number(i) + ")." + fi.completeSuffix();
+                        i++;
                     }
-                    mRecvStatus = DATA;
+                    mReceivedFiles->append(name);
+                    mCurrentFile = new QFile(name);
+                    bool ret = mCurrentFile->open(QIODevice::WriteOnly);
+                    if (!ret)
+                    {
+                        emit receiveFileCancelled();
+                        // Chiusura socket
+                        if (mCurrentSocket)
+                        {
+                            mCurrentSocket->disconnect();
+                            mCurrentSocket->disconnectFromHost();
+                            mCurrentSocket->close();
+                            mCurrentSocket->deleteLater();
+                            mCurrentSocket = NULL;
+                        }
+
+                        // Rilascio memoria
+                        delete mReceivedFiles;
+                        mReceivedFiles = NULL;
+
+                        // Impostazione stato
+                        mIsReceiving = false;
+                        return;
+                    }
+                    mReceivingText = false;
+                }
+                mRecvStatus = DATA;
+                break;
+            }
+            case DATA:
+            {
+                // Provo a leggere quanto mi serve per finire il file corrente
+                // (o per svuotare il buffer dei dati ricevuti)
+                qint64 s = (mCurrentSocket->bytesAvailable() > (mElementSize - mElementReceivedData))
+                           ? (mElementSize - mElementReceivedData)
+                           : mCurrentSocket->bytesAvailable();
+                QByteArray d = mCurrentSocket->read(s);
+                mElementReceivedData += d.size();
+                mTotalReceivedData += d.size();
+                updateStatus();
+
+                // Salvo i dati letti
+                if (!mReceivingText)
+                    mCurrentFile->write(d);
+                else
+                    mTextToReceive.append(d);
+
+                // Verifico se ho completato l'elemento corrente
+                if (mElementReceivedData == mElementSize)
+                {
+                    // Completato, chiudo il file e mi preparo per il prossimo elemento
+                    mElementSize = -1;
+                    if (!mReceivingText)
+                    {
+                        mCurrentFile->deleteLater();
+                        mCurrentFile = NULL;
+                    }
+                    mRecvStatus = FILENAME;
                 }
                 break;
-
-
-            case DATA:
-                {
-        // Provo a leggere quanto mi serve per finire il file corrente
-        // (o per svuotare il buffer dei dati ricevuti)
-        qint64 s = (mCurrentSocket->bytesAvailable() > (mElementSize - mElementReceivedData))
-                    ? (mElementSize - mElementReceivedData)
-                    : mCurrentSocket->bytesAvailable();
-        QByteArray d = mCurrentSocket->read(s);
-        mElementReceivedData += d.size();
-        mTotalReceivedData += d.size();
-        updateStatus();
-
-        // Salvo i dati letti
-        if (!mReceivingText)
-            mCurrentFile->write(d);
-        else
-            mTextToReceive.append(d);
-
-        // Verifico se ho completato l'elemento corrente
-        if (mElementReceivedData == mElementSize)
-        {
-            // Completato, chiudo il file e mi preparo per il prossimo elemento
-            mElementSize = -1;
-            if (!mReceivingText)
-            {
-                mCurrentFile->deleteLater();
-                mCurrentFile = NULL;
             }
-                        mRecvStatus = FILENAME;
-        }
-    }
-                break;
 
         }
     }
@@ -441,10 +419,10 @@ void DuktoProtocol::closedConnectionTmp()
 // Chiusura della connessione TCP in ricezione
 void DuktoProtocol::closedConnection()
 {
-    // Svuoto il buffer in ricezione
+    // empty the receive buffer
     readNewData();
 
-    // Chiusura eventuale file corrente
+    // Closing any current file
     if (mCurrentFile)
     {
         QString name;
@@ -455,19 +433,19 @@ void DuktoProtocol::closedConnection()
         QFile::remove(name);
         receiveFileCancelled();
     }
-
-    // Ricezione file conclusa
-    else if (!mReceivingText)
+    else if (!mReceivingText) // Receiving file ended
+    {
         receiveFileComplete(mReceivedFiles, mTotalSize);
-
-    // Ricezione testo conclusa
-    else
+        // TODO: notify for recieving file
+    }
+    else // Receiving text ended
     {
         QString rec = QString::fromUtf8(mTextToReceive);
         receiveTextComplete(&rec, mTotalSize);
+        // TODO: notify for recieving text
     }
 
-    // Chiusura socket
+    // closing socket
     if (mCurrentSocket)
     {
         mCurrentSocket->disconnect();
@@ -477,13 +455,12 @@ void DuktoProtocol::closedConnection()
         mCurrentSocket = NULL;
     }
 
-    // Rilascio memoria
+    // release memory
     delete mReceivedFiles;
     mReceivedFiles = NULL;
 
-    // Impostazione stato
+    // reset status
     mIsReceiving = false;
-
 }
 
 void DuktoProtocol::sendFile(QString ipDest, qint16 port, QStringList files)
@@ -721,8 +698,8 @@ QStringList DuktoProtocol::expandTree(const QStringList& files)
 
     // Iterazione sugli elementi
     QStringList expanded;
-    for (int i = 0; i < files.count(); i++)
-        addRecursive(expanded, files.at(i));
+    for(QStringList::const_iterator iter = files.constBegin(); iter != files.constEnd(); ++iter)
+        addRecursive(expanded, *iter);
 
     return expanded;
 }
@@ -735,12 +712,12 @@ void DuktoProtocol::addRecursive(QStringList& e, QString path)
     if (path.right(1) == "/") path.chop(1);
     e.append(path);
 
-    QFileInfo fi(path);
-    if (fi.isDir())
+    QString tempPath = path + "/";
+    if (QFileInfo(path).isDir())
     {
         QStringList entries = QDir(path).entryList(QDir::AllEntries | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot);
-        for (int i = 0; i < entries.count(); i++)
-            addRecursive(e, path + "/" + entries.at(i));
+        for(QStringList::const_iterator iter = entries.constBegin(); iter != entries.constEnd(); ++iter)
+            addRecursive(e, tempPath + *iter);
     }
 }
 
@@ -819,23 +796,26 @@ qint64 DuktoProtocol::computeTotalSize(const QStringList& e)
 }
 
 // Invia un pacchetto a tutti gli indirizzi broadcast del PC
-void DuktoProtocol::sendToAllBroadcast(const QByteArray& packet, qint16 port)
+void DuktoProtocol::sendToAllBroadcast(const QByteArray& packet, const QList<qint16>& ports)
 {
     // Elenco interfacce disponibili
     QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
 
     // Iterazione sulle interfacce
-    for (int i = 0; i < ifaces.size(); i++)
+    for(QList<QNetworkInterface>::const_iterator iface = ifaces.constBegin(); iface != ifaces.constEnd(); ++iface)
     {
         // Iterazione per tutti gli IP dell'interfaccia
-        QList<QNetworkAddressEntry> addrs = ifaces[i].addressEntries();
+        QList<QNetworkAddressEntry> addrs = iface->addressEntries();
 
         // Invio pacchetto per ogni IP di broadcast
-        for (int j = 0; j < addrs.size(); j++)
-            if ((addrs[j].ip().protocol() == QAbstractSocket::IPv4Protocol) && !addrs[j].broadcast().toString().isEmpty())
+        for(QList<QNetworkAddressEntry>::const_iterator addr = addrs.constBegin(); addr != addrs.constEnd(); ++addr)
+            if ((addr->ip().protocol() == QAbstractSocket::IPv4Protocol) && !addr->broadcast().toString().isEmpty())
             {
-                mSocket->writeDatagram(packet.data(), packet.length(), addrs[j].broadcast(), port);
-                mSocket->flush();
+                for(QList<qint16>::const_iterator port = ports.constBegin(); port != ports.constEnd(); ++port)
+                {
+                    mSocket->writeDatagram(packet.data(), packet.length(), addr->broadcast(), *port);
+                    mSocket->flush();
+                }
             }
     }
 }

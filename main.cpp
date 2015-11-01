@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
     DuktoWindow viewer;
 #if !defined(SYMBIAN) && defined(SINGLE_APP)
     app.setActivationWindow(&viewer, true);
+#endif
     SystemTray tray(viewer);
     tray.show();
-#endif
     GuiBehind gb(&viewer);
 
 #ifndef Q_WS_S60

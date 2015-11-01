@@ -79,7 +79,7 @@ private:
     void addRecursive(QStringList& e, QString path);
     qint64 computeTotalSize(const QStringList& e);
     QByteArray nextElementHeader();
-    void sendToAllBroadcast(const QByteArray& packet, qint16 port);
+    void sendToAllBroadcast(const QByteArray& packet, const QList<qint16>& ports);
     void closeCurrentTransfer(bool aborted = false);
 
     void handleMessage(QByteArray &data, QHostAddress &sender);

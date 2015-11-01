@@ -22,6 +22,7 @@
 #include "duktowindow.h"
 #include "platform.h"
 #include "updateschecker.h"
+#include "systemtray.h"
 
 #include <QHash>
 #include <QDeclarativeView>
@@ -108,6 +109,9 @@ GuiBehind::GuiBehind(DuktoWindow* view) :
     connect(&mDuktoProtocol, SIGNAL(sendFileError(int)), this, SLOT(sendFileError(int)));
     connect(&mDuktoProtocol, SIGNAL(receiveFileCancelled()), this, SLOT(receiveFileCancelled()));
     connect(&mDuktoProtocol, SIGNAL(sendFileAborted()), this, SLOT(sendFileAborted()));
+
+    connect(&mDuktoProtocol, SIGNAL(receiveTextComplete(QString*,qint64)), SystemTray::tray, SLOT(received_text(QString*,qint64)));
+    connect(&mDuktoProtocol, SIGNAL(receiveFileComplete(QStringList*,qint64)), SystemTray::tray, SLOT(received_file(QStringList*,qint64)));
 
     // Register other signals
     connect(this, SIGNAL(remoteDestinationAddressChanged()), this, SLOT(remoteDestinationAddressHandler()));

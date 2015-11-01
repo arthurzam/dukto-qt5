@@ -76,19 +76,19 @@ void DuktoWindow::dragLeaveEvent(QDragLeaveEvent *event)
 
 void DuktoWindow::dropEvent(QDropEvent *event)
 {
-    const QMimeData *mimeData = event->mimeData();
+    const QMimeData* mimeData = event->mimeData();
     if (!mimeData->hasUrls()) return;
 
     QStringList files;
     const QList<QUrl> urlList = mimeData->urls();
-    foreach (const QUrl &url, urlList)
-        files.append(url.toLocalFile());
+    for(QList<QUrl>::const_iterator url = urlList.constBegin(); url != urlList.constEnd(); ++url)
+        files.append(url->toLocalFile());
 
-       event->acceptProposedAction();
+    event->acceptProposedAction();
     mGuiBehind->sendDroppedFiles(&files);
 }
 
-void DuktoWindow::closeEvent(QCloseEvent *)
+void DuktoWindow::closeEvent(QCloseEvent*)
 {
     mGuiBehind->settings()->saveWindowGeometry(saveGeometry());
     mGuiBehind->close();
